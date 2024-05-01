@@ -1,5 +1,3 @@
-# cs348k-project
-
 # Deeply Learned Caches: An Optimization for Deep Learning Inference
 
 ## Names and SUNet ID: 
