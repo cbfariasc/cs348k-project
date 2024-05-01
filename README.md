@@ -39,7 +39,7 @@ Balasubramanian, A., Kumar, A., Liu, Y., Cao, H., Venkataraman, S., and Akella, 
 
 ## Deliverables:
   - We will present the accuracy and latency measurements to the class. We plan on using visuals, like graphs and charts to help us present. We will compare latency vs performance for each of our models. We will provide illustrations for any part of the system design that we change from the paper. We will base the success of our implementation on whether it reaches and/or surpasses the latency gains from the paper, as shown below (ignore the Google Commands speech recognition task).
-    ![plot](./Performance Screenshot Github.png)
+    ![plot](./screenshot.png)
 
 ## Biggest risks: 
   - This is our first time developing in Apache Thrift for RPC’s. 
