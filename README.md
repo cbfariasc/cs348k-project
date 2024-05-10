@@ -21,7 +21,7 @@ Balasubramanian, A., Kumar, A., Liu, Y., Cao, H., Venkataraman, S., and Akella, 
 
 ## Constraints: 
   - Complexity of the learned cache ML models which affects:
-        - Performance/accuracy (must predict outputs correctly often enough to make it worth it)
+  	- Performance/accuracy (must predict outputs correctly often enough to make it worth it)
   	- ML Model latency (it must be fast enough to not delay each layer calculation)
   - Same CPU/GPU instances as in the paper
 
