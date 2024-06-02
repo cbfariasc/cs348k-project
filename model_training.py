@@ -99,7 +99,7 @@ if __name__ == "__main__":
 
     full_train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 
-    train_size = 640 #int(0.1 * len(full_train_dataset)) # 6400
+    train_size = 32 #int(0.1 * len(full_train_dataset)) # 6400
     val_size = len(full_train_dataset) - train_size
 
     train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
