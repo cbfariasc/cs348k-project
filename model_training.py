@@ -5,7 +5,7 @@ import torchvision.models as models
 import torch
 import torch.nn as nn
 import torch.optim as optim
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 print(device)
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
@@ -154,6 +154,8 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     resnet18 = resnet18.to(device)
     resnet18.eval()
+    if torch.cuda.is_available():
+        resnet18.cuda()
 
     layer1_list, layer2_list, layer3_list, layer4_list, fc_list = [], [], [], [], []
     binary_list = []
@@ -177,6 +179,7 @@ if __name__ == "__main__":
     total_start = time.time()
     comparison_results  = []
     for images, labels in val_subset_loader: 
+        images, labels = images.to(device), labels.to(labels)
         out = images
         # print(out.shape)
         for name, layer in resnet18.named_children():
