@@ -175,6 +175,7 @@ if __name__ == "__main__":
 
     print("Collecting Predictor/selector data", train_size, "samples")
     total_start = time.time()
+    comparison_results  = []
     for images, labels in val_subset_loader: 
         out = images
         # print(out.shape)
@@ -188,7 +189,9 @@ if __name__ == "__main__":
 
                 softmax_outputs = F.softmax(out, dim=1)
                 _, preds = torch.max(softmax_outputs, 1)
-                binary_list.extend((preds == labels).cpu().numpy())
+                # binary_list.extend((preds == labels).cpu().numpy())
+                comparison = preds == labels
+                comparison_results.append(comparison)
             else:
                 out = layer(out)
                 if name == 'layer1':
@@ -201,6 +204,9 @@ if __name__ == "__main__":
                     layer4_list.append(out.flatten())
             output_shapes[name] = out.shape
     
+    final_results = torch.cat(comparison_results).tolist()
+    binary_list.extend(final_results)
+
     predictor_layer1_dataset = PredictorDataset(layer1_list, fc_list)
     predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
     predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
