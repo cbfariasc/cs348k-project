@@ -10,7 +10,9 @@ print(device)
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 import time
+from tqdm import tqdm
 
+TQDM_DISABLE = False
 
 def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
@@ -21,8 +23,9 @@ def train_predictor(model, dataloader, epochs=10):
     model.train()
     loss_history = []
     for epoch in range(epochs):
+        epoch_start_time = time.time()
         running_loss = 0.0
-        for inputs, targets in dataloader:
+        for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -30,10 +33,14 @@ def train_predictor(model, dataloader, epochs=10):
             loss.backward(retain_graph=True)
             optimizer.step()
             running_loss += loss.item()
-        print(f"Epoch {epoch + 1}, Loss: {running_loss / len(dataloader)}")
+        epoch_end_time = time.time()
+        epoch_duration = epoch_end_time - epoch_start_time
+        print(f"Epoch {epoch + 1} completed in {epoch_duration:.2f} seconds, Loss: {running_loss / len(dataloader):.4f}")
+        
         epoch_loss = running_loss / len(dataloader)
         loss_history.append(epoch_loss)
-    print(f"total time: {time.time() - total_start}")
+    total_duration = time.time() - total_start
+    print(f"Total training time: {total_duration:.2f} seconds")
 
     return loss_history
 
@@ -46,8 +53,9 @@ def train_selector(model, dataloader, epochs=10):
     model.train()
     loss_history = []
     for epoch in range(epochs):
+        epoch_start_time = time.time()
         running_loss = 0.0
-        for inputs, targets in dataloader:
+        for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
             inputs, targets = inputs.to(device), targets.to(device).float()
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -55,10 +63,14 @@ def train_selector(model, dataloader, epochs=10):
             loss.backward(retain_graph=True)
             optimizer.step()
             running_loss += loss.item()
-        print(f"Epoch {epoch + 1}, Loss: {running_loss / len(dataloader)}")
+        epoch_end_time = time.time()
+        epoch_duration = epoch_end_time - epoch_start_time
+        print(f"Epoch {epoch + 1} completed in {epoch_duration:.2f} seconds, Loss: {running_loss / len(dataloader):.4f}")
+
         epoch_loss = running_loss / len(dataloader)
         loss_history.append(epoch_loss)
-    print(f"total time: {time.time() - total_start}")
+    total_duration = time.time() - total_start
+    print(f"Total training time: {total_duration:.2f} seconds")
 
     return loss_history
 
