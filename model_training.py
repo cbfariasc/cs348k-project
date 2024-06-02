@@ -10,6 +10,8 @@ print(device)
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
 import time
+from tqdm import tqdm
+TQDM_DISABLE=False
 
 
 def train_predictor(model, dataloader, epochs=10):
@@ -22,18 +24,24 @@ def train_predictor(model, dataloader, epochs=10):
     loss_history = []
     for epoch in range(epochs):
         running_loss = 0.0
-        for inputs, targets in dataloader:
+        epoch_start_time = time.time()
+
+        for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
             inputs, targets = inputs.to(device), targets.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-            loss.backward()
+            loss.backward(retain_graph=True)
             optimizer.step()
             running_loss += loss.item()
-        print(f"Epoch {epoch + 1}, Loss: {running_loss / len(dataloader)}")
+        epoch_end_time = time.time()
+        epoch_duration = epoch_end_time - epoch_start_time
+        print(f"Epoch {epoch + 1} completed in {epoch_duration:.2f} seconds, Loss: {running_loss / len(dataloader):.4f}")
+
         epoch_loss = running_loss / len(dataloader)
         loss_history.append(epoch_loss)
-    print(f"total time: {time.time() - total_start}")
+    total_duration = time.time() - total_start
+    print(f"Total training time: {total_duration:.2f} seconds")
 
     return loss_history
 
@@ -52,7 +60,7 @@ def train_selector(model, dataloader, epochs=10):
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs.squeeze(), targets)
-            loss.backward()
+            loss.backward(retain_graph=True)
             optimizer.step()
             running_loss += loss.item()
         print(f"Epoch {epoch + 1}, Loss: {running_loss / len(dataloader)}")
@@ -181,26 +189,26 @@ if __name__ == "__main__":
                 out = layer(out)
                 if name == 'layer1':
                     layer1_list.append(out.flatten())
-                if name == 'layer2':
-                    layer2_list.append(out.flatten())
-                if name == 'layer3':
-                    layer3_list.append(out.flatten())
-                if name == 'layer4':
-                    layer4_list.append(out.flatten())
+                # if name == 'layer2':
+                #     layer2_list.append(out.flatten())
+                # if name == 'layer3':
+                #     layer3_list.append(out.flatten())
+                # if name == 'layer4':
+                #     layer4_list.append(out.flatten())
             output_shapes[name] = out.shape
     
     predictor_layer1_dataset = PredictorDataset(layer1_list, fc_list)
-    predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
-    predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
-    predictor_layer4_dataset = PredictorDataset(layer4_list, fc_list)
+    #predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
+    #predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
+    #predictor_layer4_dataset = PredictorDataset(layer4_list, fc_list)
     selector_dataset = SelectorDataset(fc_list, binary_list)
     print(f"Time to build dataset: {time.time() - total_start}")
     # Create dataloaders
     batch_size = 32
     predictor_layer1_data_loader = DataLoader(predictor_layer1_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer4_data_loader = DataLoader(predictor_layer4_dataset, batch_size=batch_size, shuffle=True)
+    #predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
+    #predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
+    #predictor_layer4_data_loader = DataLoader(predictor_layer4_dataset, batch_size=batch_size, shuffle=True)
     selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
     print(f"Time to build DataLoaders: {time.time() - total_start}")
 
