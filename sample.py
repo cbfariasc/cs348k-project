@@ -66,21 +66,32 @@ class BaseModel(nn.Module):
         x = torch.flatten(x, 1)
         return x
 
+# Define the predictor and selector networks
 class PredictorNetwork(nn.Module):
     def __init__(self, input_dim, output_dim):
         super(PredictorNetwork, self).__init__()
-        self.fc = nn.Linear(input_dim, output_dim)
+        self.fc = nn.Sequential(
+            nn.Linear(input_dim, 512),
+            nn.ReLU(),
+            nn.Linear(512, output_dim)
+        )
 
     def forward(self, x):
+        x = x.view(x.size(0), -1)  # Flatten input
         return self.fc(x)
 
 class SelectorNetwork(nn.Module):
     def __init__(self, input_dim):
         super(SelectorNetwork, self).__init__()
-        self.fc = nn.Linear(input_dim, 1)
+        self.fc = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
-        return torch.sigmoid(self.fc(x))
+        return self.fc(x)
 
 def train_predictor(predictor, data_loader, criterion, optimizer):
     predictor.train()

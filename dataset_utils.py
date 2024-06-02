@@ -1,28 +1,27 @@
 import torch
 from torch.utils.data import Dataset
 
+
+
+# Create custom datasets
 class PredictorDataset(Dataset):
-    def __init__(self, hidden_outputs, final_predictions):
-        self.hidden_outputs = hidden_outputs
-        self.final_predictions = final_predictions
+    def __init__(self, inputs, targets):
+        self.inputs = inputs
+        self.targets = targets
 
     def __len__(self):
-        return len(self.hidden_outputs)
+        return len(self.inputs)
 
     def __getitem__(self, idx):
-        hidden_output = self.hidden_outputs[idx]
-        final_prediction = self.final_predictions[idx]
-        return hidden_output, final_prediction
+        return self.inputs[idx], self.targets[idx]
 
 class SelectorDataset(Dataset):
-    def __init__(self, predictor_outputs, labels):
-        self.predictor_outputs = predictor_outputs
-        self.labels = labels
+    def __init__(self, predictions, corrects):
+        self.predictions = predictions
+        self.corrects = corrects
 
     def __len__(self):
-        return len(self.predictor_outputs)
+        return len(self.predictions)
 
     def __getitem__(self, idx):
-        predictor_output = self.predictor_outputs[idx]
-        label = self.labels[idx]
-        return predictor_output, label
+        return self.predictions[idx], self.corrects[idx]
