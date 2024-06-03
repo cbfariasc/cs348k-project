@@ -78,6 +78,7 @@ def train_selector(model, dataloader, epochs=10):
 if __name__ == "__main__":
     """Set up the DataLoaders: """
     # Define the transformation for the validation data
+    batch_size = 4
     transform = transforms.Compose([
         # transforms.Resize(256),
         # transforms.CenterCrop(224),
@@ -93,19 +94,19 @@ if __name__ == "__main__":
     print("Loading CIFAR-10 dataset to base model")
     total_start = time.time()
     val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     print(f"total time: {time.time() - total_start}")
 
 
     full_train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 
-    train_size = 32 #int(0.1 * len(full_train_dataset)) # 6400
+    train_size = 640 #int(0.1 * len(full_train_dataset)) # 6400
     val_size = len(full_train_dataset) - train_size
 
     train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     test_transform = transforms.Compose([
         transforms.ToTensor(),
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     test_size = int(0.1 * len(test_dataset))
     _, small_test_dataset = random_split(test_dataset, [len(test_dataset) - test_size, test_size])
 
-    test_loader = DataLoader(small_test_dataset, batch_size=32, shuffle=False)
+    test_loader = DataLoader(small_test_dataset, batch_size=batch_size, shuffle=False)
 
     # Print the sizes of the datasets
     print(f'Training dataset size: {len(train_dataset)}')
@@ -154,8 +155,6 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     resnet18 = resnet18.to(device)
     resnet18.eval()
-    if torch.cuda.is_available():
-        resnet18.cuda()
 
     layer1_list, layer2_list, layer3_list, layer4_list, fc_list = [], [], [], [], []
     binary_list = []
@@ -168,18 +167,17 @@ if __name__ == "__main__":
     ])
 
     val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-    val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     num_samples = 640  # Adjust this number as needed
     indices = np.random.choice(len(val_dataset), num_samples, replace=False)
     val_subset = Subset(val_dataset, indices)
-    val_subset_loader = DataLoader(val_subset, batch_size=32, shuffle=False)
+    val_subset_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=False)
 
     print("Collecting Predictor/selector data", train_size, "samples")
     total_start = time.time()
     comparison_results  = []
     for images, labels in val_subset_loader: 
-        images, labels = images.to(device), labels.to(device)
         out = images
         # print(out.shape)
         for name, layer in resnet18.named_children():
@@ -217,7 +215,7 @@ if __name__ == "__main__":
     selector_dataset = SelectorDataset(fc_list, binary_list)
     print(f"Time to build dataset: {time.time() - total_start}")
     # Create dataloaders
-    batch_size = 32
+  
     predictor_layer1_data_loader = DataLoader(predictor_layer1_dataset, batch_size=batch_size, shuffle=True)
     predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
     predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
@@ -234,7 +232,7 @@ if __name__ == "__main__":
 
     layer1_flat = layer1_list[0].flatten()  #flat tensor
     input_dim = layer1_flat.shape[0]  # This will be a tuple with a single element (total number of elements)
-    output_dim = 320 #### flatten w.r.t. each batch?
+    output_dim = batch_size * 10 #### flatten w.r.t. each batch?
 
     predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
     selector_model = SelectorNetwork(output_dim).to(device)
