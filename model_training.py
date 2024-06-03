@@ -297,7 +297,7 @@ def test_models():
               output = nn.functional.adaptive_avg_pool2d(output, (1, 1))
 
           elif name == 'fc':
-              output = output.view(output.size(0), -1)
+              output = output.view(output.size(0), -1).to(device)
               output = layer(output)
               softmax_outputs = F.softmax(output, dim=1)
               _, preds = torch.max(softmax_outputs, 1)
