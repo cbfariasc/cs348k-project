@@ -209,6 +209,16 @@ def train_models():
                 #     layer4_list.append(out_temp)
             output_shapes[name] = out.shape
     print(comparison_results)
+    num_true = 0
+    num_false = 0
+    for tensor in comparison_results:
+        if tensor[0][0]:
+            num_true += 1
+        else:
+            num_false += 1
+
+    print(f"Num true: {num_true}")
+    print(f"Num false: {num_false}")
 
     final_results = torch.cat(comparison_results).tolist()
     binary_list.extend(final_results)
