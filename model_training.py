@@ -250,9 +250,9 @@ def test_models():
     input_dim = batch_size * 200704
     output_dim = batch_size * 10
 
-    resnet = models.resnet18(pretrained=True)
-    selector = SelectorNetwork(output_dim)
-    predictor = PredictorNetwork(input_dim, output_dim)
+    resnet = models.resnet18(pretrained=True).to(device)
+    selector = SelectorNetwork(output_dim).to(device)
+    predictor = PredictorNetwork(input_dim, output_dim).to(device)
     resnet.fc = nn.Linear(resnet.fc.in_features, 10)
 
     p_model_path = "models/p_layer1_v1.pth"
