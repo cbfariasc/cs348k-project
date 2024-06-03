@@ -178,7 +178,9 @@ if __name__ == "__main__":
     total_start = time.time()
     comparison_results  = []
     for images, labels in val_subset_loader: 
+        images = images.to(device)
         out = images
+        labels = labels.to(device)
         # print(out.shape)
         for name, layer in resnet18.named_children():
             if name == 'avgpool':
