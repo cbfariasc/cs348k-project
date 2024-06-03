@@ -310,6 +310,7 @@ def test_models():
               # print(f"layer1 output shape = {output.shape}")
               pred_out = predictor(output.to(device))
               if selector(pred_out) == 1:
+                  print("cache hit!")
                   num_sample_layer1 += 1
                   output = pred_out
                   if output == labels:
@@ -322,7 +323,8 @@ def test_models():
           #print(f"Layer: {name}, Output shape: {output.shape}, total time: {time.time() - start}")
 
     print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
-    print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
+    if num_sample_layer1 != 0:
+        print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
     print(f"total time: {time.time() - total_start}")
 
 def get_args():
