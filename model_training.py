@@ -301,7 +301,7 @@ def test_models():
               output = layer(output.to(device))
               softmax_outputs = F.softmax(output, dim=1)
               _, preds = torch.max(softmax_outputs, 1)
-              num_sample_fc += labels.size(0)
+              num_sample_fc += 1
               if preds == labels:
                   num_correct_fc += (preds == labels).sum().item()
 
@@ -310,7 +310,7 @@ def test_models():
               # print(f"layer1 output shape = {output.shape}")
               pred_out = predictor(output.to(device))
               if selector(pred_out) == 1:
-                  num_sample_layer1 += labels.size(0)
+                  num_sample_layer1 += 1
                   output = pred_out
                   if output == labels:
                       num_correct_layer1 += (output == labels).sum().item()
