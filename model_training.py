@@ -184,7 +184,10 @@ def train_models():
             elif name == 'fc':
                 out = out.view(out.size(0), -1)
                 out = layer(out)
-                fc_list.append(out.flatten())
+
+                out_tensor = torch.tensor(out)
+                out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                fc_list.append(out_final)
 
                 softmax_outputs = F.softmax(out, dim=1)
                 _, preds = torch.max(softmax_outputs, 1)
@@ -193,14 +196,16 @@ def train_models():
                 comparison_results.append(comparison)
             else:
                 out = layer(out)
+                out_tensor = torch.tensor(out)
+                out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
                 if name == 'layer1':
-                    layer1_list.append(out.flatten())
+                    layer1_list.append(out_temp)
                 if name == 'layer2':
-                    layer2_list.append(out.flatten())
+                    layer2_list.append(out_temp)
                 if name == 'layer3':
-                    layer3_list.append(out.flatten())
+                    layer3_list.append(out_temp)
                 if name == 'layer4':
-                    layer4_list.append(out.flatten())
+                    layer4_list.append(out_temp)
             output_shapes[name] = out.shape
     
     final_results = torch.cat(comparison_results).tolist()
@@ -225,11 +230,12 @@ def train_models():
 
     '''Train Predictors'''
     # Example training function for predictor and selector networks
-
-    layer1_flat = layer1_list[0].flatten()  #flat tensor
-    input_dim = layer1_flat.shape[0]  # This will be a tuple with a single element (total number of elements)
-    output_dim = batch_size * 10 #### flatten w.r.t. each batch?
-    print(input_dim)
+    layer1_flat = layer1_list[0]  # (B, P, P)
+    print(layer1_flat.shape)
+    input_dim = layer1_flat.shape[1] * layer1_flat.shape[2] # This will be a tuple with a single element (total number of elements)
+    output_dim = 10 #### flatten w.r.t. each batch?
+    print(f"input dim= {input_dim}")
+    print(f"output dim= {output_dim}")
 
     predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
     selector_model = SelectorNetwork(output_dim).to(device)
