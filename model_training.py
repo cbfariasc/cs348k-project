@@ -7,12 +7,15 @@ import torch.nn as nn
 import torch.optim as optim
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
-from torch.utils.data import DataLoader, random_split
-from torchvision import datasets, transforms
+from torch.utils.data import DataLoader, random_split, Dataset, Subset
 import time
 from tqdm import tqdm
-
+import argparse
 TQDM_DISABLE = False
+import torch.nn.functional as F
+from torchvision import datasets, transforms
+import numpy as np
+from dataset_utils import PredictorDataset, SelectorDataset
 
 def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
@@ -74,8 +77,7 @@ def train_selector(model, dataloader, epochs=10):
 
     return loss_history
 
-
-if __name__ == "__main__":
+def train_models():
     """Set up the DataLoaders: """
     # Define the transformation for the validation data
     batch_size = 4
@@ -143,12 +145,6 @@ if __name__ == "__main__":
 
     '''Build the predictor/selector Database'''
 
-    import torch
-    import torch.nn.functional as F
-    from torchvision import models, datasets, transforms
-    import numpy as np
-    from torch.utils.data import DataLoader, Dataset, Subset
-    from dataset_utils import PredictorDataset, SelectorDataset
 
     output_shapes = {}
 
@@ -228,13 +224,12 @@ if __name__ == "__main__":
 
 
     '''Train Predictors'''
-    from sample import PredictorNetwork, SelectorNetwork
-    from sample import BaseModel
     # Example training function for predictor and selector networks
 
     layer1_flat = layer1_list[0].flatten()  #flat tensor
     input_dim = layer1_flat.shape[0]  # This will be a tuple with a single element (total number of elements)
     output_dim = batch_size * 10 #### flatten w.r.t. each batch?
+    print(input_dim)
 
     predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
     selector_model = SelectorNetwork(output_dim).to(device)
@@ -249,6 +244,94 @@ if __name__ == "__main__":
     # Save the model's state dictionary
     torch.save(predictor_model.state_dict(), p_save_path)
     torch.save(selector_model.state_dict(), s_save_path)
+
+def test_models():
+    batch_size = 4
+    input_dim = batch_size * 200704
+    output_dim = batch_size * 10
+
+    resnet = models.resnet18(pretrained=True)
+    selector = SelectorNetwork(output_dim)
+    predictor = PredictorNetwork(input_dim, output_dim)
+    resnet.fc = nn.Linear(resnet.fc.in_features, 10)
+
+    p_model_path = "models/p_layer1_v1.pth"
+    s_model_path = "models/s_layer1_v1.pth"
+
+    selector.load_state_dict(torch.load(s_model_path))
+    predictor.load_state_dict(torch.load(p_model_path))
+
+    resnet.eval()
+    selector.eval()
+    predictor.eval()
+    # Transformation and data loading
+    transform = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    ])
+
+    val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+    # Iterate through each layer in the ResNet-50 model and apply them sequentially
+    total_start = time.time()
+    
+    num_sample_fc = 0
+    num_sample_layer1 = 0
+    num_correct_fc = 0
+    num_correct_layer1 = 0
+    for image, labels in val_loader:
+      image = image.to(device)
+      output = image
+      labels = labels.to(device)
+      
+      for name, layer in resnet.named_children():
+          #start = time.time()
+          if name == 'avgpool':
+              output = nn.functional.adaptive_avg_pool2d(output, (1, 1))
+
+          elif name == 'fc':
+              output = output.view(output.size(0), -1)
+              output = layer(output)
+              softmax_outputs = F.softmax(output, dim=1)
+              _, preds = torch.max(softmax_outputs, 1)
+              num_sample_fc += labels.size(0)
+              if preds == labels:
+                  num_correct_fc += (preds == labels).sum().item()
+
+          elif name == 'layer1':# or name == 'layer2' or name == 'layer3' or name == 'layer4':
+              output = layer(output)
+              # print(f"layer1 output shape = {output.shape}")
+              pred_out = predictor(output)
+              if selector(pred_out) == 1:
+                  num_sample_layer1 += labels.size(0)
+                  output = pred_out
+                  if output == labels:
+                      num_correct_layer1 += (output == labels).sum().item()
+                  break    
+              
+          else:
+              output = layer(output)
+
+          #print(f"Layer: {name}, Output shape: {output.shape}, total time: {time.time() - start}")
+
+    print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
+    print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
+    print(f"total time: {time.time() - total_start}")
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--mode", type=str, default="train")
+    args = parser.parse_args()
+    return args
+
+if __name__ == "__main__":
+    args = get_args()
+    if args.mode == "train":
+        train_models()
+    else:
+        test_models()
 
 
 
