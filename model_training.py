@@ -208,11 +208,11 @@ def train_models():
                 # if name == 'layer4':
                 #     layer4_list.append(out_temp)
             output_shapes[name] = out.shape
-    print(comparison_results)
+    # print(comparison_results)
     num_true = 0
     num_false = 0
     for tensor in comparison_results:
-        if tensor[0][0]:
+        if tensor.item():
             num_true += 1
         else:
             num_false += 1
