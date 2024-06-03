@@ -105,9 +105,9 @@ def train_models():
     train_size = 640 #int(0.1 * len(full_train_dataset)) # 6400
     val_size = len(full_train_dataset) - train_size
 
-    train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
+    #train_dataset, val_dataset = random_split(full_train_dataset, [train_size, val_size])
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    train_loader = DataLoader(full_train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     test_transform = transforms.Compose([
@@ -122,7 +122,7 @@ def train_models():
     test_loader = DataLoader(small_test_dataset, batch_size=batch_size, shuffle=False)
 
     # Print the sizes of the datasets
-    print(f'Training dataset size: {len(train_dataset)}')
+    print(f'Training dataset size: {len(full_train_dataset)}')
     print(f'Validation dataset size: {len(val_dataset)}')
     print(f'Test dataset size: {len(small_test_dataset)}')
 
