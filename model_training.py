@@ -287,10 +287,12 @@ def test_models():
     num_sample_layer1 = 0
     num_correct_fc = 0
     num_correct_layer1 = 0
+    total_samps = 0
     for image, labels in val_loader:
       #image = image.to(device)
       output = image.to(device)
       labels = labels.to(device)
+      total_samps += 1
       
       for name, layer in resnet.named_children():
           #start = time.time()
@@ -326,6 +328,7 @@ def test_models():
     print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
     if num_sample_layer1 != 0:
         print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
+    print(f"percent cache hit: {num_sample_layer1 / total_samps}")
     print(f"total time: {time.time() - total_start}")
 
 def get_args():
