@@ -258,7 +258,7 @@ def test_models():
     resnet = models.resnet18(pretrained=True).to(device)
     selector = SelectorNetwork(output_dim).to(device)
     predictor = PredictorNetwork(input_dim, output_dim).to(device)
-    resnet.fc = nn.Linear(resnet.fc.in_features, 10)
+    resnet.fc = nn.Linear(resnet.fc.in_features, 10).to(device)
 
     p_model_path = "models/p_layer1_v1.pth"
     s_model_path = "models/s_layer1_v1.pth"
