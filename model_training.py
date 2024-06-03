@@ -231,8 +231,7 @@ def train_models():
     '''Train Predictors'''
     # Example training function for predictor and selector networks
     layer1_flat = layer1_list[0]  # (B, P, P)
-    print(layer1_flat.shape)
-    input_dim = layer1_flat.shape[1] * layer1_flat.shape[2] # This will be a tuple with a single element (total number of elements)
+    input_dim = layer1_flat.shape[1] # This will be a tuple with a single element (total number of elements)
     output_dim = 10 #### flatten w.r.t. each batch?
     print(f"input dim= {input_dim}")
     print(f"output dim= {output_dim}")
@@ -253,8 +252,8 @@ def train_models():
 
 def test_models():
     batch_size = 4
-    input_dim = batch_size * 200704
-    output_dim = batch_size * 10
+    input_dim = 200704
+    output_dim = 10
 
     resnet = models.resnet18(pretrained=True).to(device)
     selector = SelectorNetwork(output_dim).to(device)
