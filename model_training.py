@@ -201,29 +201,29 @@ def train_models():
                 out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
                 if name == 'layer1':
                     layer1_list.append(out_temp)
-                if name == 'layer2':
-                    layer2_list.append(out_temp)
-                if name == 'layer3':
-                    layer3_list.append(out_temp)
-                if name == 'layer4':
-                    layer4_list.append(out_temp)
+                # if name == 'layer2':
+                #     layer2_list.append(out_temp)
+                # if name == 'layer3':
+                #     layer3_list.append(out_temp)
+                # if name == 'layer4':
+                #     layer4_list.append(out_temp)
             output_shapes[name] = out.shape
-    
+    print(comparison_results)
+
     final_results = torch.cat(comparison_results).tolist()
     binary_list.extend(final_results)
-
     predictor_layer1_dataset = PredictorDataset(layer1_list, fc_list)
-    predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
-    predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
-    predictor_layer4_dataset = PredictorDataset(layer4_list, fc_list)
+    # predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
+    # predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
+    # predictor_layer4_dataset = PredictorDataset(layer4_list, fc_list)
     selector_dataset = SelectorDataset(fc_list, binary_list)
     print(f"Time to build dataset: {time.time() - total_start}")
     # Create dataloaders
   
     predictor_layer1_data_loader = DataLoader(predictor_layer1_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
-    predictor_layer4_data_loader = DataLoader(predictor_layer4_dataset, batch_size=batch_size, shuffle=True)
+    # predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
+    # predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
+    # predictor_layer4_data_loader = DataLoader(predictor_layer4_dataset, batch_size=batch_size, shuffle=True)
     selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
     print(f"Time to build DataLoaders: {time.time() - total_start}")
 
