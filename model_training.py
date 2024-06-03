@@ -242,7 +242,13 @@ if __name__ == "__main__":
     predictor_loss = train_predictor(predictor_model, predictor_layer1_data_loader)
     selector_loss = train_selector(selector_model, selector_data_loader)
 
+    # Specify the path where you want to save the model
+    p_save_path = 'models/p_layer1_v1.pth'
+    s_save_path = 'models/s_layer1_v1.pth'
 
+    # Save the model's state dictionary
+    torch.save(predictor_model.state_dict(), p_save_path)
+    torch.save(selector_model.state_dict(), s_save_path)
 
 
 
