@@ -168,7 +168,7 @@ def train_models():
     num_samples = 640  # Adjust this number as needed
     indices = np.random.choice(len(val_dataset), num_samples, replace=False)
     val_subset = Subset(val_dataset, indices)
-    val_subset_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=False)
+    val_subset_loader = DataLoader(val_subset, batch_size=1, shuffle=False)
 
     print("Collecting Predictor/selector data", train_size, "samples")
     total_start = time.time()
