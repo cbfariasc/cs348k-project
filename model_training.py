@@ -165,7 +165,7 @@ def train_models():
     val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    num_samples = 64000  # Adjust this number as needed
+    num_samples = 50000  # Adjust this number as needed
     indices = np.random.choice(len(val_dataset), num_samples, replace=False)
     val_subset = Subset(val_dataset, indices)
     val_subset_loader = DataLoader(val_subset, batch_size=1, shuffle=False)
