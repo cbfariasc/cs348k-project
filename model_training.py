@@ -251,7 +251,7 @@ def train_models():
     torch.save(selector_model.state_dict(), s_save_path)
 
 def test_models():
-    batch_size = 4
+    batch_size = 1 #test with batch size of 1-2 to allow you to skip layers 
     input_dim = 200704
     output_dim = 10
 
