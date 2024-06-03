@@ -287,8 +287,8 @@ def test_models():
     num_correct_fc = 0
     num_correct_layer1 = 0
     for image, labels in val_loader:
-      image = image.to(device)
-      output = image
+      #image = image.to(device)
+      output = image.to(device)
       labels = labels.to(device)
       
       for name, layer in resnet.named_children():
