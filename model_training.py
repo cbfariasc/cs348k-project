@@ -308,7 +308,7 @@ def test_models():
           elif name == 'layer1':# or name == 'layer2' or name == 'layer3' or name == 'layer4':
               output = layer(output)
               # print(f"layer1 output shape = {output.shape}")
-              pred_out = predictor(output)
+              pred_out = predictor(output.to(device))
               if selector(pred_out) == 1:
                   num_sample_layer1 += labels.size(0)
                   output = pred_out
