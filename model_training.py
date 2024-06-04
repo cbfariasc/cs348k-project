@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from torchvision import datasets, transforms
 import numpy as np
 from dataset_utils import PredictorDataset, SelectorDataset
+import random
 
 def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
