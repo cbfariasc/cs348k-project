@@ -199,7 +199,7 @@ def train_models(train_model_type):
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     print(len(val_dataset))
 
-    num_samples = 8000  # Adjust this number as needed
+    num_samples = 10000  # Adjust this number as needed
     indices = np.random.choice(len(val_dataset), num_samples, replace=False)
     val_subset = Subset(val_dataset, indices)
     val_subset_loader = DataLoader(val_subset, batch_size=1, shuffle=False)
