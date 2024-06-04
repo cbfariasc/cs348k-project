@@ -317,10 +317,10 @@ def test_models():
               num_sample_fc += 1
               if preds == labels:
                   num_correct_fc += (preds == labels).sum().item()
-              else :
-                  print("mismatch")
-                  print(preds)
-                  print(labels)
+              # else :
+              #     print("mismatch")
+              #     print(preds)
+              #     print(labels)
 
           elif name == 'layer1':# or name == 'layer2' or name == 'layer3' or name == 'layer4':
               output = layer(output)
