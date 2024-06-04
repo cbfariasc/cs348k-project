@@ -411,12 +411,12 @@ def test_models():
                       print("cache hit!")
                       num_sample_layer1 += 1
                       output = pred_out
-                      if output == labels:
-                          num_correct_layer1 += (output == labels).sum().item()
-                      else:
-                          print("incorrect cache hit")
-                          print(output)
-                          print(labels)
+                      #if output == labels:
+                      num_correct_layer1 += (output == labels).sum().item()
+                      #else:
+                      #    print("incorrect cache hit")
+                      #    print(output)
+                      #    print(labels)
                       break    
                   
               else:
