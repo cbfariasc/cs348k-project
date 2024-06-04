@@ -48,6 +48,30 @@ def train_predictor(model, dataloader, epochs=10):
 
     return loss_history
 
+def sample_tensors(outputs, labels, k):
+    # Step 1: Identify the indices of elements in labels that are True and False
+    indices_true = [i for i, label in enumerate(labels) if label]
+    indices_false = [i for i, label in enumerate(labels) if not label]
+    
+    # Check if there are enough elements with True and False labels
+    if len(indices_true) < k:
+        raise ValueError(f"There are only {len(indices_true)} elements with label True, but {k} were requested.")
+    if len(indices_false) < k:
+        raise ValueError(f"There are only {len(indices_false)} elements with label False, but {k} were requested.")
+    
+    # Step 2: Randomly select k of these indices from each group
+    selected_indices_true = random.sample(indices_true, k)
+    selected_indices_false = random.sample(indices_false, k)
+    
+    # Step 3: Create the truncated lists for each group
+    truncated_outputs_true = [outputs[i] for i in selected_indices_true]
+    truncated_labels_true = [labels[i] for i in selected_indices_true]
+    
+    truncated_outputs_false = [outputs[i] for i in selected_indices_false]
+    truncated_labels_false = [labels[i] for i in selected_indices_false]
+    
+    return (truncated_outputs_true, truncated_labels_true), (truncated_outputs_false, truncated_labels_false)
+
 def train_selector(model, dataloader, epochs=10):
     print("Training selector")
     total_start = time.time()
@@ -289,14 +313,15 @@ def train_models(train_model_type):
                             pred_out_final = pred_out_temp.reshape(pred_out_temp.shape[0], -1)
                             pred_out_list.append(pred_out_final)
                     output_shapes[name] = out.shape
-
         # Train selector
-        print (f"number cache hits in data {num_data_cache_hit}")
+        print(f"number cache hits in data {num_data_cache_hit}")
         binary_list = []
         final_results = torch.cat(cache_hit_list).tolist()
         binary_list.extend(final_results)
+
+        pred_out_trunc, cache_hit_trunc = sample_tensors(pred_out_list, cache_hit_list, num_data_cache_hit)
         
-        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
+        selector_dataset = SelectorDataset(pred_out_trunc, cache_hit_trunc)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
