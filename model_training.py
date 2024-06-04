@@ -60,7 +60,7 @@ def train_selector(model, dataloader, epochs=10):
         epoch_start_time = time.time()
         running_loss = 0.0
         for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
-            inputs, targets = inputs, targets.float() #inputs.to(device), targets.to(device).float()
+            inputs, targets = inputs, targets #inputs.to(device), targets.to(device).float()
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs.squeeze(), targets)
