@@ -406,8 +406,8 @@ def test_models():
               elif name == 'layer1':
                   output = layer(output)
                   pred_out = predictor(output.to(device))
-                  print(f'layer 1 pred out {selector(pred_out)}')
-                  if selector(pred_out) == 1:
+                  # print(f'layer 1 pred out {selector(pred_out)}')
+                  if selector(pred_out) > 0.55:
                       print("cache hit!")
                       num_sample_layer1 += 1
                       output = pred_out
