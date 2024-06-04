@@ -271,7 +271,7 @@ def train_models(train_model_type):
                         softmax_predictor = F.softmax(pred_out, dim=1)
                         _, predictor_label = torch.max(softmax_predictor, 1)
 
-                        cache_hit = torch.tensor(predictor_label == preds) # checks the predictor's real accuracy of the model output
+                        cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
                         # cache_hit_final = cache_hit.reshape(cache_hit.shape[0], -1)
                         cache_hit_list.append(cache_hit)
                     else:
@@ -286,9 +286,9 @@ def train_models(train_model_type):
                     output_shapes[name] = out.shape
 
         # Train selector
-        #binary_list = []
-        #final_results = torch.cat(cache_hit_list).tolist()
-        #binary_list.extend(final_results)
+        binary_list = []
+        final_results = torch.cat(cache_hit_list).tolist()
+        binary_list.extend(final_results)
         #print('binary')
         #print(binary_list[0].shape)
         #print("pred out")
@@ -298,7 +298,7 @@ def train_models(train_model_type):
         #pred_out_list_temp = torch.cat(pred_out_list).tolist()
         #pred_out_list_final.extend(pred_out_list_temp)
         
-        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
+        selector_dataset = SelectorDataset(pred_out_list, binary_list)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
