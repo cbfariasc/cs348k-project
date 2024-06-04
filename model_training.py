@@ -292,7 +292,7 @@ def train_models(train_model_type):
         binary_list.extend(final_results)
         #print('binary')
         print(type(binary_list))
-        print(binary_list.shape)
+        print(binary_list[0].shape)
         #print("pred out")
         #print(pred_out_list[0].shape)
         
