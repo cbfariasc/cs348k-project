@@ -388,7 +388,7 @@ def test_models():
                   output = layer(output)
 
 
-    print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
+    # print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}") tests model accuracy when it doesn't cache hit only
     if num_sample_layer1 != 0:
         print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
     print(f"percent cache hit: {num_sample_layer1 / total_samps}")
