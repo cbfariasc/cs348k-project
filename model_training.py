@@ -65,13 +65,21 @@ def sample_tensors(outputs, labels, k):
     selected_indices_false = random.sample(indices_false, k)
     
     # Step 3: Create the truncated lists for each group
-    truncated_outputs_true = [outputs[i] for i in selected_indices_true]
-    truncated_labels_true = [labels[i] for i in selected_indices_true]
+    truncated_outputs_true = [torch.tensor(outputs[i]) for i in selected_indices_true]
+    truncated_labels_true = [torch.tensor(labels[i]) for i in selected_indices_true]
     
-    truncated_outputs_false = [outputs[i] for i in selected_indices_false]
-    truncated_labels_false = [labels[i] for i in selected_indices_false]
+    truncated_outputs_false = [torch.tensor(outputs[i]) for i in selected_indices_false]
+    truncated_labels_false = [torch.tensor(labels[i]) for i in selected_indices_false]
+
+    outs = []
+    trunc_labs = []
+    for i in range(k):
+        outs.append(truncated_outputs_true[i])
+        outs.append(truncated_outputs_false[i])
+        trunc_labs.append(truncated_labels_true[i])
+        trunc_labs.append(truncated_labels_false[i])
     
-    return (truncated_outputs_true, truncated_labels_true), (truncated_outputs_false, truncated_labels_false)
+    return outs, trunc_labs
 
 def train_selector(model, dataloader, epochs=10):
     print("Training selector")
