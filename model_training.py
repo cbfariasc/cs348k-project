@@ -175,34 +175,35 @@ def train_models(train_model_type):
         print("Collecting Predictor/selector data", train_size, "samples")
         total_start = time.time()
         comparison_results  = []
-        for images, labels in val_subset_loader: 
-            images = images.to(device)
-            out = images
-            labels = labels.to(device)
-            # print(out.shape)
-            for name, layer in resnet18.named_children():
-                if name == 'avgpool':
-                    out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
-                elif name == 'fc':
-                    out = out.view(out.size(0), -1)
-                    out = layer(out)
+        with torch.no_grad():
+            for images, labels in val_subset_loader: 
+                images = images.to(device)
+                out = images
+                labels = labels.to(device)
+                # print(out.shape)
+                for name, layer in resnet18.named_children():
+                    if name == 'avgpool':
+                        out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
+                    elif name == 'fc':
+                        out = out.view(out.size(0), -1)
+                        out = layer(out)
 
-                    out_tensor = torch.tensor(out)
-                    out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                    fc_list.append(out_final)
+                        out_tensor = torch.tensor(out)
+                        out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                        fc_list.append(out_final)
 
-                    softmax_outputs = F.softmax(out, dim=1)
-                    _, preds = torch.max(softmax_outputs, 1)
-                    comparison = preds == labels
-                    comparison_results.append(comparison)
-                else:
-                    out = layer(out)
-                    out_tensor = torch.tensor(out)
-                    out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
-                    if name == 'layer1':
-                        layer1_list.append(out_temp)
+                        softmax_outputs = F.softmax(out, dim=1)
+                        _, preds = torch.max(softmax_outputs, 1)
+                        comparison = preds == labels
+                        comparison_results.append(comparison)
+                    else:
+                        out = layer(out)
+                        out_tensor = torch.tensor(out)
+                        out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
+                        if name == 'layer1':
+                            layer1_list.append(out_temp)
 
-                output_shapes[name] = out.shape
+                    output_shapes[name] = out.shape
         stacked_tensor = torch.stack(comparison_results)
         accuracy = torch.sum(stacked_tensor)
         print(f"base model accuracy: {accuracy}")
@@ -248,38 +249,39 @@ def train_models(train_model_type):
         predictor_model.eval()
 
         # Collect predictor and model outputs for selector dataset
-        for images, labels in val_subset_loader: 
-            images = images.to(device)
-            out = images
-            labels = labels.to(device)
-            # print(out.shape)
-            for name, layer in resnet18.named_children():
-                if name == 'avgpool':
-                    out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
-                elif name == 'fc':
-                    out = out.view(out.size(0), -1)
-                    out = layer(out)
+        with torch.no_grad():
+            for images, labels in val_subset_loader: 
+                images = images.to(device)
+                out = images
+                labels = labels.to(device)
+                # print(out.shape)
+                for name, layer in resnet18.named_children():
+                    if name == 'avgpool':
+                        out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
+                    elif name == 'fc':
+                        out = out.view(out.size(0), -1)
+                        out = layer(out)
 
-                    out_tensor = torch.tensor(out)
-                    out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                    fc_list.append(out_final)
+                        out_tensor = torch.tensor(out)
+                        out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                        fc_list.append(out_final)
 
-                    softmax_outputs = F.softmax(out, dim=1)
-                    _, preds = torch.max(softmax_outputs, 1)
+                        softmax_outputs = F.softmax(out, dim=1)
+                        _, preds = torch.max(softmax_outputs, 1)
 
-                    softmax_predictor = F.softmax(pred_out, dim=1)
-                    _, predictor_label = torch.max(softmax_predictor, 1)
+                        softmax_predictor = F.softmax(pred_out, dim=1)
+                        _, predictor_label = torch.max(softmax_predictor, 1)
 
-                    cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
-                    cache_hit_list.append(cache_hit)
-                else:
-                    out = layer(out)
-                    out_tensor = torch.tensor(out)
-                    out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
-                    if name == 'layer1':
-                        pred_out = predictor_model(out_temp)
-                        pred_out_list.append(pred_out)
-                output_shapes[name] = out.shape
+                        cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
+                        cache_hit_list.append(cache_hit)
+                    else:
+                        out = layer(out)
+                        out_tensor = torch.tensor(out)
+                        out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
+                        if name == 'layer1':
+                            pred_out = predictor_model(out_temp)
+                            pred_out_list.append(pred_out)
+                    output_shapes[name] = out.shape
 
         # Train selector
         selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
@@ -327,43 +329,44 @@ def test_models():
     num_correct_fc = 0
     num_correct_layer1 = 0
     total_samps = 0
-    for image, labels in val_loader:
-      #image = image.to(device)
-      output = image.to(device)
-      labels = labels.to(device)
-      total_samps += 1
-      
-      for name, layer in resnet.named_children():
-          #start = time.time()
-          if name == 'avgpool':
-              output = nn.functional.adaptive_avg_pool2d(output, (1, 1))
+    with torch.no_grad():
+        for image, labels in val_loader:
+          #image = image.to(device)
+          output = image.to(device)
+          labels = labels.to(device)
+          total_samps += 1
+          
+          for name, layer in resnet.named_children():
+              #start = time.time()
+              if name == 'avgpool':
+                  output = nn.functional.adaptive_avg_pool2d(output, (1, 1))
 
-          elif name == 'fc':
-              output = output.view(output.size(0), -1)
-              output = layer(output.to(device))
-              softmax_outputs = F.softmax(output, dim=1)
-              _, preds = torch.max(softmax_outputs, 1)
-              num_sample_fc += 1
-              if preds == labels:
-                  num_correct_fc += (preds == labels).sum().item()
+              elif name == 'fc':
+                  output = output.view(output.size(0), -1)
+                  output = layer(output.to(device))
+                  softmax_outputs = F.softmax(output, dim=1)
+                  _, preds = torch.max(softmax_outputs, 1)
+                  num_sample_fc += 1
+                  if preds == labels:
+                      num_correct_fc += (preds == labels).sum().item()
 
-          elif name == 'layer1':
-              output = layer(output)
-              pred_out = predictor(output.to(device))
-              if selector(pred_out) == 1:
-                  print("cache hit!")
-                  num_sample_layer1 += 1
-                  output = pred_out
-                  if output == labels:
-                      num_correct_layer1 += (output == labels).sum().item()
-                  else:
-                      print("incorrect cache hit")
-                      print(output)
-                      print(labels)
-                  break    
-              
-          else:
-              output = layer(output)
+              elif name == 'layer1':
+                  output = layer(output)
+                  pred_out = predictor(output.to(device))
+                  if selector(pred_out) == 1:
+                      print("cache hit!")
+                      num_sample_layer1 += 1
+                      output = pred_out
+                      if output == labels:
+                          num_correct_layer1 += (output == labels).sum().item()
+                      else:
+                          print("incorrect cache hit")
+                          print(output)
+                          print(labels)
+                      break    
+                  
+              else:
+                  output = layer(output)
 
 
     print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
