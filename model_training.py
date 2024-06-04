@@ -251,7 +251,7 @@ def train_models(train_model_type):
         # Collect predictor and model outputs for selector dataset
         with torch.no_grad():
             for images, labels in val_subset_loader: 
-                images = images.to(device)
+                out = images.to(device)
                 labels = labels.to(device)
                 # print(out.shape)
                 for name, layer in resnet18.named_children():
@@ -284,8 +284,8 @@ def train_models(train_model_type):
 
         # Train selector
         selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
-        print("sel data len")
-        print(selector_dataset)
+        print("sel data ")
+        print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
         selector_model = SelectorNetwork(output_dim).to(device)
         selector_loss = train_selector(selector_model, selector_data_loader)
