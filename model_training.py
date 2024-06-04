@@ -321,6 +321,11 @@ def train_models(train_model_type):
         binary_list.extend(final_results)
 
         pred_out_trunc, cache_hit_trunc = sample_tensors(pred_out_list, cache_hit_list, num_data_cache_hit)
+
+        print("pred_out_trunc")
+        print(type(pred_out_trunc[0]))
+        print("cache_hit_trunc")
+        print(type(cache_hit_trunc[0]))
         
         selector_dataset = SelectorDataset(pred_out_trunc, cache_hit_trunc)
         print("sel data ")
