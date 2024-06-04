@@ -262,7 +262,6 @@ def train_models(train_model_type):
                         out = layer(out)
 
                         out_tensor = torch.tensor(out)
-                        print(out_tensor.shape)
                         out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
                         # fc_list.append(out_final)
 
@@ -274,6 +273,7 @@ def train_models(train_model_type):
 
                         cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
                         # cache_hit_final = cache_hit.reshape(cache_hit.shape[0], -1)
+                        print(cache_hit.shape)
                         cache_hit_list.append(cache_hit)
                     else:
                         out = layer(out)
