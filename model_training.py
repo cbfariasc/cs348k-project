@@ -63,6 +63,7 @@ def train_selector(model, dataloader, epochs=10):
             inputs, targets = inputs.to(device), targets.to(device).float()
             optimizer.zero_grad()
             outputs = model(inputs)
+            print(f"selector model output shape: {outputs.shape}")
             loss = criterion(outputs, targets)
             loss.backward()
             optimizer.step()
@@ -281,6 +282,7 @@ def train_models(train_model_type):
                         out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
                         if name == 'layer1':
                             pred_out = predictor_model(out_temp)
+                            print(f"pred out = {pred_out.shape}")
                             pred_out_temp = torch.tensor(pred_out)
                             pred_out_final = pred_out_temp.reshape(pred_out_temp.shape[0], -1)
                             pred_out_list.append(pred_out_final)
@@ -300,7 +302,7 @@ def train_models(train_model_type):
         #pred_out_list_temp = torch.cat(pred_out_list).tolist()
         #pred_out_list_final.extend(pred_out_list_temp)
         
-        selector_dataset = SelectorDataset(pred_out_list, binary_list)
+        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
