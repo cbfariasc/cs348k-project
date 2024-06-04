@@ -262,6 +262,7 @@ def train_models(train_model_type):
                         out = layer(out)
 
                         out_tensor = torch.tensor(out)
+                        print(out_tensor.shape)
                         out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
                         # fc_list.append(out_final)
 
