@@ -81,7 +81,7 @@ def train_selector(model, dataloader, epochs=10):
 def train_models(train_model_type):
     """Set up the DataLoaders: """
     # Define the transformation for the validation data
-    batch_size = 4
+    batch_size = 1
     transform = transforms.Compose([
         # transforms.Resize(256),
         # transforms.CenterCrop(224),
