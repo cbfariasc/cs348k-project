@@ -93,14 +93,14 @@ def train_models():
     ])
 
     # Load the validation dataset
-    print("Loading ImageNet dataset to base model")
+    print("Loading CIFAR10 dataset to base model")
     total_start = time.time()
-    val_dataset = datasets.ImageNet(root='./data', train=False, download=True, transform=transform)
+    val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     print(f"total time: {time.time() - total_start}")
 
 
-    full_train_dataset = datasets.ImageNet(root='./data', train=True, download=True, transform=transform)
+    full_train_dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 
     train_size = len(full_train_dataset) #int(0.1 * len(full_train_dataset)) # 6400
     val_size = len(val_dataset) # len(full_train_dataset) - train_size
@@ -114,7 +114,7 @@ def train_models():
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
     ])
-    test_dataset = datasets.ImageNet(root='./data', train=False, download=True, transform=test_transform)
+    test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=test_transform)
 
     test_size = int(0.1 * len(test_dataset))
     _, small_test_dataset = random_split(test_dataset, [len(test_dataset) - test_size, test_size])
@@ -134,7 +134,7 @@ def train_models():
     num_classes = 10 # CIFAR10
 
     # Load the pretrained ResNet-50 model
-    resnet50 = models.resnet50(pretrained=True) # pretrained on ImageNet
+    resnet50 = models.resnet50(pretrained=True) # pretrained on CIFAR10
     # resnet50.eval() # sets this to evaluation mode
 
     resnet18 = models.resnet18(pretrained=True)
@@ -162,7 +162,7 @@ def train_models():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    val_dataset = datasets.ImageNet(root='./data', train=False, download=True, transform=transform)
+    val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     print(len(val_dataset))
 
@@ -315,7 +315,7 @@ def test_models():
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    val_dataset = datasets.ImageNet(root='./data', train=False, download=True, transform=transform)
+    val_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
     # Iterate through each layer in the ResNet-50 model and apply them sequentially
