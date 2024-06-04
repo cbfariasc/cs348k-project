@@ -289,9 +289,9 @@ def train_models(train_model_type):
         final_results = torch.cat(cache_hit_list).tolist()
         binary_list.extend(final_results)
         print('binary')
-        print(binary_list.shape)
+        print(binary_list[0].shape)
         print("pred out")
-        print(pred_out_list.shape)
+        print(pred_out_list[0].shape)
         
         selector_dataset = SelectorDataset(pred_out_list, binary_list)
         print("sel data ")
