@@ -247,6 +247,7 @@ def train_models(train_model_type):
         p_model_path = "models/p_layer1_v1.pth"
         predictor_model.load_state_dict(torch.load(p_model_path))
         predictor_model.eval()
+        num_data_cache_hit = 0
 
         # Collect predictor and model outputs for selector dataset
         with torch.no_grad():
@@ -274,6 +275,8 @@ def train_models(train_model_type):
                         cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
                         # cache_hit_final = cache_hit.reshape(cache_hit.shape[0], -1)
                         # print(cache_hit.shape)
+                        if cache_hit:
+                            num_data_cache_hit += 1
                         cache_hit_list.append(cache_hit)
                     else:
                         out = layer(out)
@@ -288,18 +291,10 @@ def train_models(train_model_type):
                     output_shapes[name] = out.shape
 
         # Train selector
+        print (f"number cache hits in data {num_data_cache_hit}")
         binary_list = []
         final_results = torch.cat(cache_hit_list).tolist()
         binary_list.extend(final_results)
-        #print('binary')
-        #print(type(binary_list))
-        #print(binary_list[0].shape)
-        #print("pred out")
-        #print(pred_out_list[0].shape)
-        
-        #pred_out_list_final = []
-        #pred_out_list_temp = torch.cat(pred_out_list).tolist()
-        #pred_out_list_final.extend(pred_out_list_temp)
         
         selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
         print("sel data ")
