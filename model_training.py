@@ -283,7 +283,10 @@ def train_models(train_model_type):
                     output_shapes[name] = out.shape
 
         # Train selector
-        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
+        binary_list = []
+        final_results = torch.cat(cache_hit_list).tolist()
+        binary_list.extend(final_results)
+        selector_dataset = SelectorDataset(pred_out_list, binary_list)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
