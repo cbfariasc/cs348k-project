@@ -408,10 +408,14 @@ def test_models():
                   pred_out = predictor(output.to(device))
                   # print(f'layer 1 pred out {selector(pred_out)}')
                   if selector(pred_out) > 0.55:
-                      print("cache hit!")
+                      #print("cache hit!")
                       num_sample_layer1 += 1
                       output = pred_out
                       #if output == labels:
+                      print("output")
+                      print(output)
+                      print("labels")
+                      print(labels)
                       num_correct_layer1 += (output == labels).sum().item()
                       #else:
                       #    print("incorrect cache hit")
