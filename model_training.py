@@ -414,10 +414,10 @@ def test_models():
                       softmax_outputs = F.softmax(output, dim=1)
                       _, preds = torch.max(softmax_outputs, 1)
                       #if output == labels:
-                      print("preds")
-                      print(preds)
-                      print("labels")
-                      print(labels)
+                      #print("preds")
+                      #print(preds)
+                      #print("labels")
+                      #print(labels)
                       num_correct_layer1 += (preds == labels).sum().item()
                       #else:
                       #    print("incorrect cache hit")
