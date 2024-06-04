@@ -63,7 +63,7 @@ def train_selector(model, dataloader, epochs=10):
             inputs, targets = inputs.to(device), targets.to(device).float()
             optimizer.zero_grad()
             outputs = model(inputs)
-            loss = criterion(outputs.squeeze(), targets)
+            loss = criterion(outputs.squeeze(dim=0), targets)
             loss.backward()
             optimizer.step()
             running_loss += loss.item()
