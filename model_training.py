@@ -271,7 +271,7 @@ def train_models(train_model_type):
                         softmax_predictor = F.softmax(pred_out, dim=1)
                         _, predictor_label = torch.max(softmax_predictor, 1)
 
-                        cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
+                        cache_hit = torch.tensor(predictor_label == preds) # checks the predictor's real accuracy of the model output
                         cache_hit_list.append(cache_hit)
                     else:
                         out = layer(out)
