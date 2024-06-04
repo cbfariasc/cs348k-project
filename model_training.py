@@ -285,6 +285,8 @@ def train_models(train_model_type):
 
         # Train selector
         selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
+        print("sel data len")
+        print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
         selector_model = SelectorNetwork(output_dim).to(device)
         selector_loss = train_selector(selector_model, selector_data_loader)
