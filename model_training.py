@@ -263,7 +263,7 @@ def train_models(train_model_type):
 
                         out_tensor = torch.tensor(out)
                         out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                        fc_list.append(out_final)
+                        # fc_list.append(out_final)
 
                         softmax_outputs = F.softmax(out, dim=1)
                         _, preds = torch.max(softmax_outputs, 1)
@@ -294,7 +294,11 @@ def train_models(train_model_type):
         print("pred out")
         #print(pred_out_list[0].shape)
         
-        selector_dataset = SelectorDataset(pred_out_list, binary_list)
+        pred_out_list_final = []
+        pred_out_list_temp = torch.cat(pred_out_list).tolist()
+        pred_out_list_final.extend(pred_out_list_temp)
+        
+        selector_dataset = SelectorDataset(pred_out_list_final, binary_list)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
