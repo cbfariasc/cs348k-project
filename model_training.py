@@ -280,7 +280,7 @@ def train_models(train_model_type):
                         if name == 'layer1':
                             pred_out = predictor_model(out_temp)
                             pred_out_temp = torch.tensor(pred_out)
-                            pred_out_final = pred_out_temp.reshape(pred_out.shape[0], -1)
+                            pred_out_final = pred_out_temp.reshape(pred_out_temp.shape[0], -1)
                             pred_out_list.append(pred_out_final)
                     output_shapes[name] = out.shape
 
