@@ -317,6 +317,10 @@ def test_models():
               num_sample_fc += 1
               if preds == labels:
                   num_correct_fc += (preds == labels).sum().item()
+              else :
+                  print("mismatch")
+                  print(preds)
+                  print(labels)
 
           elif name == 'layer1':# or name == 'layer2' or name == 'layer3' or name == 'layer4':
               output = layer(output)
@@ -328,6 +332,10 @@ def test_models():
                   output = pred_out
                   if output == labels:
                       num_correct_layer1 += (output == labels).sum().item()
+                  else:
+                      print("incorrect cache hit")
+                      print(output)
+                      print(labels)
                   break    
               
           else:
