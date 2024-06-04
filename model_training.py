@@ -249,44 +249,43 @@ def train_models(train_model_type):
         predictor_model.eval()
 
         # Collect predictor and model outputs for selector dataset
-        #with torch.no_grad():
-        for images, labels in val_subset_loader: 
-            images = images.to(device)
-            out = images
-            labels = labels.to(device)
-            # print(out.shape)
-            for name, layer in resnet18.named_children():
-                if name == 'avgpool':
-                    out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
-                elif name == 'fc':
-                    out = out.view(out.size(0), -1)
-                    out = layer(out)
+        with torch.no_grad():
+            for images, labels in val_subset_loader: 
+                images = images.to(device)
+                labels = labels.to(device)
+                # print(out.shape)
+                for name, layer in resnet18.named_children():
+                    if name == 'avgpool':
+                        out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
+                    elif name == 'fc':
+                        out = out.view(out.size(0), -1)
+                        out = layer(out)
 
-                    out_tensor = torch.tensor(out)
-                    out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                    fc_list.append(out_final)
+                        out_tensor = torch.tensor(out)
+                        out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                        fc_list.append(out_final)
 
-                    softmax_outputs = F.softmax(out, dim=1)
-                    _, preds = torch.max(softmax_outputs, 1)
+                        softmax_outputs = F.softmax(out, dim=1)
+                        _, preds = torch.max(softmax_outputs, 1)
 
-                    softmax_predictor = F.softmax(pred_out, dim=1)
-                    _, predictor_label = torch.max(softmax_predictor, 1)
+                        softmax_predictor = F.softmax(pred_out, dim=1)
+                        _, predictor_label = torch.max(softmax_predictor, 1)
 
-                    cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
-                    cache_hit_list.append(cache_hit)
-                else:
-                    out = layer(out)
-                    out_tensor = torch.tensor(out)
-                    out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
-                    if name == 'layer1':
-                        pred_out = predictor_model(out_temp)
-                        pred_out_list.append(pred_out)
-                output_shapes[name] = out.shape
+                        cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
+                        cache_hit_list.append(cache_hit)
+                    else:
+                        out = layer(out)
+                        out_tensor = torch.tensor(out)
+                        out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
+                        if name == 'layer1':
+                            pred_out = predictor_model(out_temp)
+                            pred_out_list.append(pred_out)
+                    output_shapes[name] = out.shape
 
         # Train selector
         selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
         print("sel data len")
-        print(len(selector_dataset))
+        print(selector_dataset)
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
         selector_model = SelectorNetwork(output_dim).to(device)
         selector_loss = train_selector(selector_model, selector_data_loader)
