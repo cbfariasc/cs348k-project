@@ -5,6 +5,7 @@ import torchvision.models as models
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 from torch.utils.data import DataLoader, random_split, Dataset, Subset
@@ -21,7 +22,7 @@ def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
     total_start = time.time()
     print("Start time: ", total_start)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-6)
+    optimizer = optim.Adam(model.parameters(), lr=1e-6)
     criterion = nn.MSELoss()
     model.train()
     loss_history = []
@@ -52,7 +53,7 @@ def train_selector(model, dataloader, epochs=10):
     total_start = time.time()
     print("Start time: ", total_start)
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-6)
+    optimizer = optim.Adam(model.parameters(), lr=1e-6)
     model.train()
     loss_history = []
     for epoch in range(epochs):
@@ -77,7 +78,7 @@ def train_selector(model, dataloader, epochs=10):
 
     return loss_history
 
-def train_models():
+def train_models(train_model_type):
     """Set up the DataLoaders: """
     # Define the transformation for the validation data
     batch_size = 4
@@ -148,11 +149,10 @@ def train_models():
 
     output_shapes = {}
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     resnet18 = resnet18.to(device)
     resnet18.eval()
 
-    layer1_list, layer2_list, layer3_list, layer4_list, fc_list = [], [], [], [], []
+    layer1_list, fc_list = [], []
     binary_list = []
 
 
@@ -171,122 +171,123 @@ def train_models():
     val_subset = Subset(val_dataset, indices)
     val_subset_loader = DataLoader(val_subset, batch_size=1, shuffle=False)
 
-    print("Collecting Predictor/selector data", train_size, "samples")
-    total_start = time.time()
-    comparison_results  = []
-    for images, labels in val_subset_loader: 
-        images = images.to(device)
-        out = images
-        labels = labels.to(device)
-        # print(out.shape)
-        for name, layer in resnet18.named_children():
-            if name == 'avgpool':
-                out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
-            elif name == 'fc':
-                out = out.view(out.size(0), -1)
-                out = layer(out)
+    if train_model_type == "pred":
+        print("Collecting Predictor/selector data", train_size, "samples")
+        total_start = time.time()
+        comparison_results  = []
+        for images, labels in val_subset_loader: 
+            images = images.to(device)
+            out = images
+            labels = labels.to(device)
+            # print(out.shape)
+            for name, layer in resnet18.named_children():
+                if name == 'avgpool':
+                    out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
+                elif name == 'fc':
+                    out = out.view(out.size(0), -1)
+                    out = layer(out)
 
-                out_tensor = torch.tensor(out)
-                out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                fc_list.append(out_final)
+                    out_tensor = torch.tensor(out)
+                    out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                    fc_list.append(out_final)
 
-                softmax_outputs = F.softmax(out, dim=1)
-                _, preds = torch.max(softmax_outputs, 1)
-                comparison = preds == labels
-                comparison_results.append(comparison)
-            else:
-                out = layer(out)
-                out_tensor = torch.tensor(out)
-                out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
-                if name == 'layer1':
-                    layer1_list.append(out_temp)
-                # if name == 'layer2':
-                #     layer2_list.append(out_temp)
-                # if name == 'layer3':
-                #     layer3_list.append(out_temp)
-                # if name == 'layer4':
-                #     layer4_list.append(out_temp)
-            output_shapes[name] = out.shape
-    stacked_tensor = torch.stack(comparison_results)
-    accuracy = torch.sum(stacked_tensor)
-    print(f"base model accuracy: {accuracy}")
+                    softmax_outputs = F.softmax(out, dim=1)
+                    _, preds = torch.max(softmax_outputs, 1)
+                    comparison = preds == labels
+                    comparison_results.append(comparison)
+                else:
+                    out = layer(out)
+                    out_tensor = torch.tensor(out)
+                    out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
+                    if name == 'layer1':
+                        layer1_list.append(out_temp)
 
-    final_results = torch.cat(comparison_results).tolist()
-    binary_list.extend(final_results)
-    predictor_layer1_dataset = PredictorDataset(layer1_list, fc_list)
-    # predictor_layer2_dataset = PredictorDataset(layer2_list, fc_list)
-    # predictor_layer3_dataset = PredictorDataset(layer3_list, fc_list)
-    # predictor_layer4_dataset = PredictorDataset(layer4_list, fc_list)
-    print(f"Time to build Predictor dataset: {time.time() - total_start}")
+                output_shapes[name] = out.shape
+        stacked_tensor = torch.stack(comparison_results)
+        accuracy = torch.sum(stacked_tensor)
+        print(f"base model accuracy: {accuracy}")
+
+        final_results = torch.cat(comparison_results).tolist()
+        binary_list.extend(final_results)
+        predictor_layer1_dataset = PredictorDataset(layer1_list, fc_list)
+        print(f"Time to build Predictor dataset: {time.time() - total_start}")
+      
+        predictor_layer1_data_loader = DataLoader(predictor_layer1_dataset, batch_size=batch_size, shuffle=True)
+        print(f"Time to build Predictor DataLoader: {time.time() - total_start}")
+
+
   
-    predictor_layer1_data_loader = DataLoader(predictor_layer1_dataset, batch_size=batch_size, shuffle=True)
-    # predictor_layer2_data_loader = DataLoader(predictor_layer2_dataset, batch_size=batch_size, shuffle=True)
-    # predictor_layer3_data_loader = DataLoader(predictor_layer3_dataset, batch_size=batch_size, shuffle=True)
-    # predictor_layer4_data_loader = DataLoader(predictor_layer4_dataset, batch_size=batch_size, shuffle=True)
-    print(f"Time to build Predictor DataLoader: {time.time() - total_start}")
+        '''Train Predictors'''
+        # Example training function for predictor and selector networks
+        layer1_flat = layer1_list[0]  # (B, P, P)
+        input_dim = layer1_flat.shape[1] # This will be a tuple with a single element (total number of elements)
+        output_dim = 10 #### flatten w.r.t. each batch?
+        # print(f"input dim= {input_dim}")
+        # print(f"output dim= {output_dim}")
 
-
-
-    '''Train Predictors'''
-    # Example training function for predictor and selector networks
-    layer1_flat = layer1_list[0]  # (B, P, P)
-    input_dim = layer1_flat.shape[1] # This will be a tuple with a single element (total number of elements)
-    output_dim = 10 #### flatten w.r.t. each batch?
-    # print(f"input dim= {input_dim}")
-    # print(f"output dim= {output_dim}")
-
-    predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
-    predictor_loss = train_predictor(predictor_model, predictor_layer1_data_loader)
-    p_save_path = 'models/p_layer1_v1.pth'
-    # Save the model's state dictionary
-    torch.save(predictor_model.state_dict(), p_save_path)
+        predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
+        predictor_loss = train_predictor(predictor_model, predictor_layer1_data_loader)
+        p_save_path = 'models/p_layer1_v1.pth'
+        # Save the model's state dictionary
+        torch.save(predictor_model.state_dict(), p_save_path)
     
+    else:
+        '''Train Selector Network'''
+        # Train the selector: 
+        # Run the predictor, get its outputs, get the true value and the predictor value. 
+        # IN: Predictor output (predicting FC).....  OUT: 1  (if predictor_out == actual FC)
+        cache_hit_list = []
+        pred_out_list = []
 
-    '''Train Selector Network'''
-    # Train the selector: 
-    # Run the predictor, get its outputs, get the true value and the predictor value. 
-    # IN: Predictor output (predicting FC).....  OUT: 1  (if predictor_out == actual FC)
-    cache_hit_list = []
-    pred_out_list = []
-    for images, labels in val_subset_loader: 
-        images = images.to(device)
-        out = images
-        labels = labels.to(device)
-        # print(out.shape)
-        for name, layer in resnet18.named_children():
-            if name == 'avgpool':
-                out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
-            elif name == 'fc':
-                out = out.view(out.size(0), -1)
-                out = layer(out)
+        # Load in predictor 
+        input_dim = 200704
+        output_dim = 10
+        predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
+        p_model_path = "models/p_layer1_v1.pth"
+        predictor_model.load_state_dict(torch.load(p_model_path))
+        predictor_model.eval()
 
-                out_tensor = torch.tensor(out)
-                out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
-                fc_list.append(out_final)
+        # Collect predictor and model outputs for selector dataset
+        for images, labels in val_subset_loader: 
+            images = images.to(device)
+            out = images
+            labels = labels.to(device)
+            # print(out.shape)
+            for name, layer in resnet18.named_children():
+                if name == 'avgpool':
+                    out = nn.functional.adaptive_avg_pool2d(out, (1, 1))
+                elif name == 'fc':
+                    out = out.view(out.size(0), -1)
+                    out = layer(out)
 
-                softmax_outputs = F.softmax(out, dim=1)
-                _, preds = torch.max(softmax_outputs, 1)
+                    out_tensor = torch.tensor(out)
+                    out_final = out_tensor.reshape(out_tensor.shape[0], -1)  #flat tensor
+                    fc_list.append(out_final)
 
-                softmax_predictor = F.softmax(pred_out, dim=1)
-                _, predictor_label = torch.max(softmax_predictor, 1)
+                    softmax_outputs = F.softmax(out, dim=1)
+                    _, preds = torch.max(softmax_outputs, 1)
 
-                cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
-                cache_hit_list.append(cache_hit)
-            else:
-                out = layer(out)
-                out_tensor = torch.tensor(out)
-                out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
-                if name == 'layer1':
-                    pred_out = predictor_model(out_temp)
-                    pred_out_list.append(pred_out)
-            output_shapes[name] = out.shape
+                    softmax_predictor = F.softmax(pred_out, dim=1)
+                    _, predictor_label = torch.max(softmax_predictor, 1)
 
-    selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
-    selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
-    selector_model = SelectorNetwork(output_dim).to(device)
-    selector_loss = train_selector(selector_model, selector_data_loader)
-    s_save_path = 'models/s_layer1_v1.pth'
-    torch.save(selector_model.state_dict(), s_save_path)
+                    cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
+                    cache_hit_list.append(cache_hit)
+                else:
+                    out = layer(out)
+                    out_tensor = torch.tensor(out)
+                    out_temp = out_tensor.reshape(out_tensor.shape[0], -1)
+                    if name == 'layer1':
+                        pred_out = predictor_model(out_temp)
+                        pred_out_list.append(pred_out)
+                output_shapes[name] = out.shape
+
+        # Train selector
+        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
+        selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
+        selector_model = SelectorNetwork(output_dim).to(device)
+        selector_loss = train_selector(selector_model, selector_data_loader)
+        s_save_path = 'models/s_layer1_v1.pth'
+        torch.save(selector_model.state_dict(), s_save_path)
 
 
 def test_models():
@@ -374,13 +375,14 @@ def test_models():
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", type=str, default="train")
+    parser.add_argument("--train_model_type", type=str, default="pred")
     args = parser.parse_args()
     return args
 
 if __name__ == "__main__":
     args = get_args()
     if args.mode == "train":
-        train_models()
+        train_models(args.train_model_type)
     else:
         test_models()
 
