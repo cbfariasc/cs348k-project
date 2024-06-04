@@ -60,7 +60,7 @@ def train_selector(model, dataloader, epochs=10):
         epoch_start_time = time.time()
         running_loss = 0.0
         for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
-            inputs, targets = inputs, targets #inputs.to(device), targets.to(device).float()
+            inputs, targets = inputs.to(device), targets.to(device).float()
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs.squeeze(), targets)
@@ -286,19 +286,19 @@ def train_models(train_model_type):
                     output_shapes[name] = out.shape
 
         # Train selector
-        binary_list = []
-        final_results = torch.cat(cache_hit_list).tolist()
-        binary_list.extend(final_results)
-        print('binary')
+        #binary_list = []
+        #final_results = torch.cat(cache_hit_list).tolist()
+        #binary_list.extend(final_results)
+        #print('binary')
         #print(binary_list[0].shape)
-        print("pred out")
+        #print("pred out")
         #print(pred_out_list[0].shape)
         
-        pred_out_list_final = []
-        pred_out_list_temp = torch.cat(pred_out_list).tolist()
-        pred_out_list_final.extend(pred_out_list_temp)
+        #pred_out_list_final = []
+        #pred_out_list_temp = torch.cat(pred_out_list).tolist()
+        #pred_out_list_final.extend(pred_out_list_temp)
         
-        selector_dataset = SelectorDataset(pred_out_list_final, binary_list)
+        selector_dataset = SelectorDataset(pred_out_list, cache_hit_list)
         print("sel data ")
         print(len(selector_dataset))
         selector_data_loader = DataLoader(selector_dataset, batch_size=batch_size, shuffle=True)
