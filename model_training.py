@@ -33,7 +33,7 @@ def train_predictor(model, dataloader, epochs=10):
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs, targets)
-            loss.backward(retain_graph=True)
+            loss.backward()
             optimizer.step()
             running_loss += loss.item()
         epoch_end_time = time.time()
@@ -63,7 +63,7 @@ def train_selector(model, dataloader, epochs=10):
             optimizer.zero_grad()
             outputs = model(inputs)
             loss = criterion(outputs.squeeze(), targets)
-            loss.backward(retain_graph=True)
+            loss.backward()
             optimizer.step()
             running_loss += loss.item()
         epoch_end_time = time.time()
@@ -345,14 +345,9 @@ def test_models():
               num_sample_fc += 1
               if preds == labels:
                   num_correct_fc += (preds == labels).sum().item()
-              # else :
-              #     print("mismatch")
-              #     print(preds)
-              #     print(labels)
 
-          elif name == 'layer1':# or name == 'layer2' or name == 'layer3' or name == 'layer4':
+          elif name == 'layer1':
               output = layer(output)
-              # print(f"layer1 output shape = {output.shape}")
               pred_out = predictor(output.to(device))
               if selector(pred_out) == 1:
                   print("cache hit!")
@@ -369,7 +364,6 @@ def test_models():
           else:
               output = layer(output)
 
-          #print(f"Layer: {name}, Output shape: {output.shape}, total time: {time.time() - start}")
 
     print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}")
     if num_sample_layer1 != 0:
