@@ -19,6 +19,27 @@ import numpy as np
 from dataset_utils import PredictorDataset, SelectorDataset
 import random
 
+def confusion_matrix(y_pred, y_true):
+    import numpy as np
+    from sklearn.metrics import confusion_matrix
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+
+    # Example true labels and predicted labels
+    y_true = np.array(y_true)
+    y_pred = np.array(y_pred)
+
+    # Compute confusion matrix
+    cm = confusion_matrix(y_true, y_pred)
+
+    # Plot confusion matrix
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
+    plt.xlabel('Predicted Labels')
+    plt.ylabel('True Labels')
+    plt.title('Confusion Matrix')
+    plt.show()
+
 def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
     total_start = time.time()
@@ -281,7 +302,8 @@ def train_models(train_model_type):
         predictor_model.load_state_dict(torch.load(p_model_path))
         predictor_model.eval()
         num_data_cache_hit = 0
-
+        y_trues_PN = []
+        y_predictions_PN = [] #saving for the predictor Matrix
         # Collect predictor and model outputs for selector dataset
         with torch.no_grad():
             for images, labels in val_subset_loader: 
@@ -301,9 +323,10 @@ def train_models(train_model_type):
 
                         softmax_outputs = F.softmax(out, dim=1)
                         _, preds = torch.max(softmax_outputs, 1)
-
+                        y_trues_PN.extend(preds) # True of the predictor
                         softmax_predictor = F.softmax(pred_out, dim=1)
                         _, predictor_label = torch.max(softmax_predictor, 1)
+                        y_predictions_PN.extend(predictor_label)
 
                         cache_hit = predictor_label == preds # checks the predictor's real accuracy of the model output
                         # cache_hit_final = cache_hit.reshape(cache_hit.shape[0], -1)
@@ -343,7 +366,7 @@ def train_models(train_model_type):
         selector_loss = train_selector(selector_model, selector_data_loader)
         s_save_path = 'models/s_layer1_v1.pth'
         torch.save(selector_model.state_dict(), s_save_path)
-
+        confusion_matrix(y_trues_PN, y_predictions_PN) # predictor is being validated. 
 
 def test_models():
     batch_size = 1 #test with batch size of 1-2 to allow you to skip layers 
@@ -382,11 +405,15 @@ def test_models():
     num_correct_fc = 0
     num_correct_layer1 = 0
     total_samps = 0
+    y_trues_SN = []
+    y_predictions_SN = []
+    yb_true = [] # base model
+    yb_preds = []
     with torch.no_grad():
         for image, labels in val_loader:
-          #image = image.to(device)
           output = image.to(device)
           labels = labels.to(device)
+          yb_true.extend(labels)
           total_samps += 1
           
           for name, layer in resnet.named_children():
@@ -395,31 +422,42 @@ def test_models():
                   output = nn.functional.adaptive_avg_pool2d(output, (1, 1))
 
               elif name == 'fc':
-                  output = output.view(output.size(0), -1)
-                  output = layer(output.to(device))
-                  softmax_outputs = F.softmax(output, dim=1)
-                  _, preds = torch.max(softmax_outputs, 1)
-                  num_sample_fc += 1
-                  if preds == labels:
-                      num_correct_fc += (preds == labels).sum().item()
+                output = output.view(output.size(0), -1)
+                output = layer(output.to(device))
+                softmax_outputs = F.softmax(output, dim=1)
+                _, preds = torch.max(softmax_outputs, 1)
+                num_sample_fc += 1
+                yb_preds.extend(preds)
+                y_predictions = y_predictions.extend(preds)
+                if preds == labels: # should add 0, since you reached fc layer without skips. 
+                    check_if_right = (preds == labels).sum().item()
+                    num_correct_fc += check_if_right
+                    y_trues_SN.extend(check_if_right) # check equaliity
+                    
 
               elif name == 'layer1':
                   output = layer(output)
                   pred_out = predictor(output.to(device))
                   # print(f'layer 1 pred out {selector(pred_out)}')
-                  if selector(pred_out) > 0.5:
+                  selector_pred = selector(pred_out) # infer, float
+                  y_predictions_SN.extend(selector_pred > 0.5)
+                  print("selector prediction: ", selector_pred)
+                  if selector_pred > 0.5: # output FC early
                       num_sample_layer1 += 1
                       output = pred_out
                       softmax_outputs = F.softmax(output, dim=1)
                       _, preds = torch.max(softmax_outputs, 1)
-                      num_correct_layer1 += (preds == labels).sum().item()
+                      yb_preds.extend(preds)
+                      check_if_right = (preds == labels).sum().item()
+                      print("check_if_right: ", check_if_right)
+                      y_trues_SN.extend(check_if_right)
+                      num_correct_layer1 += check_if_right
                       break    
                   
               else:
-                  output = layer(output)
+                output = layer(output)          
 
-
-    # print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}") tests model accuracy when it doesn't cache hit only
+    print(f"total accuracy for fc layer: {num_correct_fc / num_sample_fc}") #tests model accuracy when it doesn't cache hit only
     total_time = time.time() - total_start
     if num_sample_layer1 != 0:
         print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
@@ -427,6 +465,9 @@ def test_models():
     print(f"total time: {total_time}")
     print(f"cached model accuracy {(num_correct_fc + num_correct_layer1) / total_samps}")
     print(f"base model average latency: {total_time / total_samps}")
+    confusion_matrix(y_trues_SN, y_predictions_SN) # selector is being validated. 
+    # confusion_matrix(y_trues_SN, y_predictions_SN) 
+
 
 def get_args():
     parser = argparse.ArgumentParser()
