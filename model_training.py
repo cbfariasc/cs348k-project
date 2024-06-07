@@ -19,16 +19,17 @@ import numpy as np
 from dataset_utils import PredictorDataset, SelectorDataset
 import random
 
-def plot_confusion_matrix(y_true, y_pred, text):
+def plot_confusion_matrix(y_true, y_pred, text="TEXT"):
     import numpy as np
     from sklearn.metrics import confusion_matrix
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    # Example true labels and predicted labels
-    y_true = np.array(y_true)
-    y_pred = np.array(y_pred)
-
+    if isinstance(y_true, torch.Tensor):
+        y_true = y_true.cpu().numpy()
+    if isinstance(y_pred, torch.Tensor):
+        y_pred = y_pred.cpu().numpy()
+        
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
 
@@ -38,7 +39,9 @@ def plot_confusion_matrix(y_true, y_pred, text):
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
     plt.title(f'{text} Confusion Matrix')
+    plt.savefig(f'{text}_confusion.png')
     plt.show()
+    
 
 def train_predictor(model, dataloader, epochs=1):
     print("Training predictor")
