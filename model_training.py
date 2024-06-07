@@ -437,7 +437,7 @@ def test_models():
                   output = layer(output)
                   pred_out = predictor(output.to(device))
                   # print(f'layer 1 pred out {selector(pred_out)}')
-                  if selector(pred_out) > 0.55:
+                  if selector(pred_out) > 0.53:
                       num_sample_layer1 += 1
                       output = pred_out
                       softmax_outputs = F.softmax(output, dim=1)
