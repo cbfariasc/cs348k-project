@@ -19,7 +19,7 @@ import numpy as np
 from dataset_utils import PredictorDataset, SelectorDataset
 import random
 
-def confusion_matrix(y_pred, y_true):
+def plot_confusion_matrix(y_true, y_pred, text):
     import numpy as np
     from sklearn.metrics import confusion_matrix
     import matplotlib.pyplot as plt
@@ -37,7 +37,7 @@ def confusion_matrix(y_pred, y_true):
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=['Negative', 'Positive'], yticklabels=['Negative', 'Positive'])
     plt.xlabel('Predicted Labels')
     plt.ylabel('True Labels')
-    plt.title('Confusion Matrix')
+    plt.title(f'{text} Confusion Matrix')
     plt.show()
 
 def train_predictor(model, dataloader, epochs=10):
@@ -366,7 +366,7 @@ def train_models(train_model_type):
         selector_loss = train_selector(selector_model, selector_data_loader)
         s_save_path = 'models/s_layer1_v1.pth'
         torch.save(selector_model.state_dict(), s_save_path)
-        confusion_matrix(y_trues_PN, y_predictions_PN) # predictor is being validated. 
+        plot_confusion_matrix(y_trues_PN, y_predictions_PN, "Predictor") # predictor is being validated. 
 
 def test_models():
     batch_size = 1 #test with batch size of 1-2 to allow you to skip layers 
@@ -465,7 +465,8 @@ def test_models():
     print(f"total time: {total_time}")
     print(f"cached model accuracy {(num_correct_fc + num_correct_layer1) / total_samps}")
     print(f"base model average latency: {total_time / total_samps}")
-    confusion_matrix(y_trues_SN, y_predictions_SN) # selector is being validated. 
+    plot_confusion_matrix(y_trues_SN, y_predictions_SN, "Selector") # selector is being validated. 
+    plot_confusion_matrix(yb_true, yb_preds, "Base Model w SPN")
     # confusion_matrix(y_trues_SN, y_predictions_SN) 
 
 
