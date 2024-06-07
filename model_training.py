@@ -19,6 +19,34 @@ import numpy as np
 from dataset_utils import PredictorDataset, SelectorDataset
 import random
 
+def train_base_model(model, dataloader, epochs=10):
+    print("Training base model")
+    total_start = time.time()
+    print("Start time: ", total_start)
+    optimizer = optim.Adam(model.parameters(), lr=1e-6)
+    criterion = nn.MSELoss()
+    model.train()
+    loss_history = []
+    for epoch in range(epochs):
+        epoch_start_time = time.time()
+        running_loss = 0.0
+        for inputs, targets in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{epochs}", disable=TQDM_DISABLE):
+            inputs, targets = inputs.to(device), targets.to(device)
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, targets)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+        epoch_end_time = time.time()
+        epoch_duration = epoch_end_time - epoch_start_time
+        print(f"Epoch {epoch + 1} completed in {epoch_duration:.2f} seconds, Loss: {running_loss / len(dataloader):.4f}")
+        
+        epoch_loss = running_loss / len(dataloader)
+        loss_history.append(epoch_loss)
+    total_duration = time.time() - total_start
+    print(f"Total training time: {total_duration:.2f} seconds")
+
 def train_predictor(model, dataloader, epochs=10):
     print("Training predictor")
     total_start = time.time()
@@ -162,14 +190,7 @@ def train_models(train_model_type):
 
 
     '''Instantiate models, criterion, and optimizer'''
-    # base_model = BaseModel()
-    base_model = BaseModel()
-    base_model.eval()
     num_classes = 10 # CIFAR10
-
-    # Load the pretrained ResNet-50 model
-    # resnet50 = models.resnet50(pretrained=True) # pretrained on CIFAR10
-    # resnet50.eval() # sets this to evaluation mode
 
     resnet18 = models.resnet18(pretrained=True)
     for param in resnet18.parameters():
@@ -205,6 +226,9 @@ def train_models(train_model_type):
     val_subset_loader = DataLoader(val_subset, batch_size=1, shuffle=False)
 
     if train_model_type == "pred":
+        print("First, train base model")
+        train_base_model(resnet18, val_subset_loader)
+
         print("Collecting Predictor/selector data", train_size, "samples")
         total_start = time.time()
         comparison_results  = []
@@ -262,7 +286,9 @@ def train_models(train_model_type):
         predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
         predictor_loss = train_predictor(predictor_model, predictor_layer1_data_loader)
         p_save_path = 'models/p_layer1_v1.pth'
+        base_save_path = 'models/base_v1.pth'
         # Save the model's state dictionary
+        torch.save(resnet18.state_dict(), base_save_path)
         torch.save(predictor_model.state_dict(), p_save_path)
     
     else:
@@ -278,6 +304,8 @@ def train_models(train_model_type):
         output_dim = 10
         predictor_model = PredictorNetwork(input_dim, output_dim).to(device)
         p_model_path = "models/p_layer1_v1.pth"
+        base_save_path = 'models/base_v1.pth'
+        resnet18.load_state_dict(torch.load(base_save_path))
         predictor_model.load_state_dict(torch.load(p_model_path))
         predictor_model.eval()
         num_data_cache_hit = 0
