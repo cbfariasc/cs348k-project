@@ -435,15 +435,15 @@ def test_models():
 
               elif name == 'layer1':
                   output = layer(output)
-                  pred_out = predictor(output.to(device))
+                  #pred_out = predictor(output.to(device))
                   # print(f'layer 1 pred out {selector(pred_out)}')
-                  if selector(pred_out) > 0.53:
-                      num_sample_layer1 += 1
-                      output = pred_out
-                      softmax_outputs = F.softmax(output, dim=1)
-                      _, preds = torch.max(softmax_outputs, 1)
-                      num_correct_layer1 += (preds == labels).sum().item()
-                      break    
+                  # if selector(pred_out) > 0.53:
+                  #     num_sample_layer1 += 1
+                  #     output = pred_out
+                  #     softmax_outputs = F.softmax(output, dim=1)
+                  #     _, preds = torch.max(softmax_outputs, 1)
+                  #     num_correct_layer1 += (preds == labels).sum().item()
+                  #     break    
                   
               else:
                   output = layer(output)
@@ -455,7 +455,7 @@ def test_models():
         print(f"total accuracy for layer1: {num_correct_layer1 / num_sample_layer1}")
     print(f"percent cache hit: {num_sample_layer1 / total_samps}")
     print(f"total time: {total_time}")
-    print(f"cached model accuracy {(num_correct_fc + num_correct_layer1) / total_samps}")
+    print(f"uncached model accuracy {(num_correct_fc + num_correct_layer1) / total_samps}")
     print(f"average latency: {total_time / total_samps}")
 
 def get_args():
