@@ -192,7 +192,7 @@ def train_models(train_model_type):
     '''Instantiate models, criterion, and optimizer'''
     num_classes = 10 # CIFAR10
 
-    resnet18 = models.resnet18(pretrained=True)
+    resnet18 = models.resnet18(pretrained=False)
     for param in resnet18.parameters():
         param.requires_grad = False
     resnet18.fc = nn.Linear(resnet18.fc.in_features, num_classes) #rewrites resnet18 final fc layer
@@ -378,14 +378,16 @@ def test_models():
     input_dim = 200704
     output_dim = 10
 
-    resnet = models.resnet18(pretrained=True).to(device)
+    resnet = models.resnet18(pretrained=False).to(device)
     selector = SelectorNetwork(output_dim).to(device)
     predictor = PredictorNetwork(input_dim, output_dim).to(device)
     resnet.fc = nn.Linear(resnet.fc.in_features, 10).to(device)
 
     p_model_path = "models/p_layer1_v1.pth"
     s_model_path = "models/s_layer1_v1.pth"
+    base_model_path = "models/base_v1.pth"
 
+    resnet.load_state_dict(torch.load())
     selector.load_state_dict(torch.load(s_model_path))
     predictor.load_state_dict(torch.load(p_model_path))
 
