@@ -40,7 +40,7 @@ def plot_confusion_matrix(y_true, y_pred, text):
     plt.title(f'{text} Confusion Matrix')
     plt.show()
 
-def train_predictor(model, dataloader, epochs=10):
+def train_predictor(model, dataloader, epochs=1):
     print("Training predictor")
     total_start = time.time()
     print("Start time: ", total_start)
@@ -102,7 +102,7 @@ def sample_tensors(outputs, labels, k):
     
     return outs, trunc_labs
 
-def train_selector(model, dataloader, epochs=10):
+def train_selector(model, dataloader, epochs=1):
     print("Training selector")
     total_start = time.time()
     print("Start time: ", total_start)
