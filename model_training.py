@@ -26,10 +26,12 @@ def plot_confusion_matrix(y_true, y_pred, text="TEXT"):
     import seaborn as sns
 
     if isinstance(y_true, torch.Tensor):
-        y_true = y_true.cpu().numpy()
+        y_true = y_true.cpu()
+        y_true = y_true.numpy()
     if isinstance(y_pred, torch.Tensor):
         y_pred = y_pred.cpu().numpy()
-        
+        y_pred = y_pred.numpy()
+
     # Compute confusion matrix
     cm = confusion_matrix(y_true, y_pred)
 
