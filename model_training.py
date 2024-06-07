@@ -29,7 +29,7 @@ def plot_confusion_matrix(y_true, y_pred, text="TEXT"):
         y_true = y_true.cpu()
         y_true = y_true.numpy()
     if isinstance(y_pred, torch.Tensor):
-        y_pred = y_pred.cpu().numpy()
+        y_pred = y_pred.cpu()
         y_pred = y_pred.numpy()
 
     # Compute confusion matrix
