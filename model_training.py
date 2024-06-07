@@ -437,7 +437,7 @@ def test_models():
                   output = layer(output)
                   pred_out = predictor(output.to(device))
                   # print(f'layer 1 pred out {selector(pred_out)}')
-                  if selector(pred_out) > 0.5:
+                  if selector(pred_out) > 0.55:
                       num_sample_layer1 += 1
                       output = pred_out
                       softmax_outputs = F.softmax(output, dim=1)
@@ -456,7 +456,7 @@ def test_models():
     print(f"percent cache hit: {num_sample_layer1 / total_samps}")
     print(f"total time: {total_time}")
     print(f"cached model accuracy {(num_correct_fc + num_correct_layer1) / total_samps}")
-    print(f"base model average latency: {total_time / total_samps}")
+    print(f"average latency: {total_time / total_samps}")
 
 def get_args():
     parser = argparse.ArgumentParser()
