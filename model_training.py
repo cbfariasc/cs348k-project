@@ -168,7 +168,7 @@ def train_models(train_model_type):
     num_classes = 10 # CIFAR10
 
     # Load the pretrained ResNet-50 model
-    resnet50 = models.resnet50(pretrained=True) # pretrained on CIFAR10
+    # resnet50 = models.resnet50(pretrained=True) # pretrained on CIFAR10
     # resnet50.eval() # sets this to evaluation mode
 
     resnet18 = models.resnet18(pretrained=True)
