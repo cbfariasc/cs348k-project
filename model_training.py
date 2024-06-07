@@ -387,7 +387,7 @@ def test_models():
     s_model_path = "models/s_layer1_v1.pth"
     base_model_path = "models/base_v1.pth"
 
-    resnet.load_state_dict(torch.load())
+    resnet.load_state_dict(torch.load(base_model_path))
     selector.load_state_dict(torch.load(s_model_path))
     predictor.load_state_dict(torch.load(p_model_path))
 
